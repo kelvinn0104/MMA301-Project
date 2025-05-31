@@ -1,15 +1,14 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import {
   Card,
-  Title,
   Chip,
-  List,
   Divider,
   IconButton,
-  Surface
+  List,
+  Surface,
+  Title
 } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface ClassItemType {
   id: number;
@@ -51,16 +50,16 @@ const ClassItem: React.FC<ClassItemProps> = ({ classes }) => (
                 ]}
               >
                 <IconButton
-                  {...props}
+                  // {...props}
                   icon={
                     classItem.status === "completed"
                       ? "check-circle"
                       : "clock-outline"
                   }
                   size={25}
-                //   color={
-                //     classItem.status === "completed" ? "#4CAF50" : "#FF9800"
-                //   }
+                  // color={
+                  //   classItem.status === "completed" ? "#4CAF50" : "#FF9800"
+                  // }
                 />
               </Surface>
             )}

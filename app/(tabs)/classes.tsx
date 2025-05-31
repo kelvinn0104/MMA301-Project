@@ -209,7 +209,7 @@ const Classes = () => {
       <View style={styles.container}>
         {/* Header với gradient */}
         <Surface style={styles.header} elevation={2}>
-          <Text style={styles.headerTitle}>Quản lý lớp học</Text>
+          {/* <Text style={styles.headerTitle}>Quản lý lớp học</Text> */}
           <Text style={styles.headerSubtitle}>
             {filteredClasses.length} lớp học đang hoạt động
           </Text>
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 40,
+    marginHorizontal: 16,
     backgroundColor: "#fff",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "#7f8c8d",
+    color: "#4ECDC4",
   },
   searchBar: {
     margin: 16,

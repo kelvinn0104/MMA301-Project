@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Animated,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -21,7 +22,12 @@ import {
   Button,
   Surface,
   Badge,
+  TextInput,
+  Dialog,
+  Portal,
 } from "react-native-paper";
+import QRCode from "react-native-qrcode-svg";
+import NetInfo from "@react-native-community/netinfo";
 
 // Define the type for a student
 interface Student {
@@ -133,6 +139,9 @@ const Attendance = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
   const [showStats, setShowStats] = useState(true);
+  const [qrVisible, setQrVisible] = useState(false);
+  const [currentIp, setCurrentIp] = useState<string | null>(null);
+  const [qrValue, setQrValue] = useState("");
 
   useEffect(() => {
     const id = parseInt(classId as string);
@@ -140,6 +149,36 @@ const Attendance = () => {
     setStudents(classStudents);
   }, [classId]);
 
+  // Get current IP using NetInfo
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setCurrentIp(state.type === 'wifi' && 'ipAddress' in (state.details ?? {}) ? (state.details as any).ipAddress : 'Unknown');
+    });
+
+    NetInfo.fetch().then((state) => {
+      setCurrentIp(state.type === 'wifi' && 'ipAddress' in (state.details ?? {}) ? (state.details as any).ipAddress : 'Unknown');
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const calculateExpiryTime = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 30);
+  
+  const vietnamTime = now.toLocaleString('sv-SE', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  
+  return vietnamTime.replace(' ', ' ');
+};
+  
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,10 +197,7 @@ const Attendance = () => {
     (s) => s.attendanceStatus === "not_taken"
   ).length;
 
-  const updateAttendance = (
-    studentId: number,
-    status: "present" | "absent"
-  ) => {
+  const updateAttendance = (studentId: number, status: "present" | "absent") => {
     setStudents((prevStudents) =>
       prevStudents.map((student) =>
         student.id === studentId
@@ -193,13 +229,7 @@ const Attendance = () => {
     }
   };
 
-  const renderStudentItem = ({
-    item,
-    index,
-  }: {
-    item: Student;
-    index: number;
-  }) => (
+  const renderStudentItem = ({ item, index }: { item: Student; index: number }) => (
     <Card style={[styles.studentCard, { marginTop: index === 0 ? 8 : 4 }]}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.studentInfo}>
@@ -207,9 +237,7 @@ const Attendance = () => {
             <Image
               source={{ uri: item.avatar }}
               style={styles.avatar}
-              onError={() =>
-                console.log(`Failed to load avatar for ${item.name}`)
-              }
+              onError={() => console.log(`Failed to load avatar for ${item.name}`)}
             />
             <Badge
               style={[
@@ -357,6 +385,14 @@ const Attendance = () => {
           </Card.Content>
         </Card>
       )}
+
+      <Button
+        mode="contained"
+        style={styles.generateQrButton}
+        onPress={() => setQrVisible(true)}
+      >
+        Tạo mã QR
+      </Button>
     </View>
   );
 
@@ -367,7 +403,6 @@ const Attendance = () => {
         style={styles.saveButton}
         labelStyle={styles.saveButtonText}
         onPress={() => {
-          // Handle save attendance
           console.log("Saving attendance...");
         }}
       >
@@ -376,20 +411,23 @@ const Attendance = () => {
     </View>
   );
 
+  const generateQRCode = () => {
+    if (!currentIp) {
+      Alert.alert("Lỗi", "Không thể lấy địa chỉ IP hiện tại. Vui lòng thử lại.");
+      return;
+    }
+    const expiryTime = calculateExpiryTime();
+    const qrData = {
+      classId: classId,
+      ipAddress: currentIp,
+      expiryTime: expiryTime,
+    };
+    setQrValue(JSON.stringify(qrData));
+    setQrVisible(true);
+  };
+
   return (
     <View style={styles.container}>
-      <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content
-          title={`Điểm danh lớp ${classId}`}
-          titleStyle={styles.headerTitle}
-        />
-        <Appbar.Action
-          icon="content-save"
-          onPress={() => console.log("Quick save")}
-        />
-      </Appbar.Header>
-
       <FlatList
         data={filteredStudents}
         renderItem={renderStudentItem}
@@ -410,6 +448,25 @@ const Attendance = () => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
+
+      <Portal>
+        <Dialog visible={qrVisible} onDismiss={() => setQrVisible(false)}>
+          <Dialog.Title>Tạo mã QR</Dialog.Title>
+          <Dialog.Content>
+            <Text style={styles.qrInfo}>Thời gian hết hạn: {calculateExpiryTime()}</Text>
+            {qrValue && (
+              <View style={styles.qrContainer}>
+                <QRCode value={qrValue} size={200} />
+                <Text style={styles.qrText}>Quét mã QR này để điểm danh</Text>
+              </View>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={generateQRCode}>Tạo mã</Button>
+            <Button onPress={() => setQrVisible(false)}>Đóng</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 };
@@ -418,14 +475,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FA",
-  },
-  header: {
-    backgroundColor: "#6200EE",
-    elevation: 4,
-  },
-  headerTitle: {
-    color: "#FFFFFF",
-    fontWeight: "600",
   },
   searchBar: {
     margin: 16,
@@ -573,7 +622,7 @@ const styles = StyleSheet.create({
   saveButton: {
     borderRadius: 12,
     paddingVertical: 4,
-    backgroundColor: "#6200EE",
+    backgroundColor: "#4ECDC4",
   },
   saveButtonText: {
     fontSize: 16,
@@ -598,6 +647,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     marginTop: 4,
+  },
+  generateQrButton: {
+    margin: 16,
+    borderRadius: 12,
+    backgroundColor: "#2196F3",
+  },
+  qrContainer: {
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  qrText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#666",
+  },
+  qrInfo: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 8,
   },
 });
 

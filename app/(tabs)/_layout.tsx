@@ -31,7 +31,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Trang chủ",
           headerTitle: "Điểm danh học sinh",
@@ -89,13 +89,31 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* QUAN TRỌNG: Attendance screen - ẩn khỏi tab bar */}
       <Tabs.Screen
-        name="attendance"
+        name="studentAttendance"
+        options={{
+          title: "Điểm danh",
+          headerTitle: "Điểm danh",
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialCommunityIcons
+              name={focused ? "qrcode-scan" : "qrcode-edit"}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="attendance/[classId]"
         options={{
           href: null, // Ẩn khỏi tab bar
           headerTitle: "Điểm danh",
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
