@@ -28,17 +28,25 @@ export default function RootLayout() {
   if (!loaded || isLoggedIn === null) {
     return null;
   }
-  console.log("🚀 ~ RootLayout ~ isLoggedIn:", isLoggedIn)
 
   return (
     <PaperProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          {isLoggedIn ? (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen name="start_screen" options={{ headerShown: false }} />
-          )}
+        <Stack initialRouteName="start_screen/index">
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="student" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="start_screen/index"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="start_screen/login"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="start_screen/register"
+            options={{ headerShown: false }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

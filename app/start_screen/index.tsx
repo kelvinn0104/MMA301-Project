@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   View,
@@ -48,9 +49,10 @@ const FeatureItem: React.FC<FeatureItemProps> = ({
 
 const OnboardingScreen: React.FC = () => {
   const theme = useTheme();
+  const router = useRouter();
 
   const handleContinue = () => {
-    // Navigate to main app or login screen
+    router.replace("/start_screen/login")
     console.log("Continue pressed");
   };
 

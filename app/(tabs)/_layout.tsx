@@ -89,7 +89,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="studentAttendance"
         options={{
           title: "Điểm danh",
@@ -102,7 +102,7 @@ export default function TabLayout() {
             />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="attendance/[classId]"
         options={{
